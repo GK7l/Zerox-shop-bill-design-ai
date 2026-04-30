@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h3 class="mb-1">Edit Stock Item</h3>
+        <p class="text-muted">Update the stock details below.</p>
+    </div>
+    <a href="{{ url_for('stock') }}" class="btn btn-outline-secondary"><span class="bi bi-arrow-left"></span>Back to Stock</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label" for="name">Item Name</label>
+                <input id="name" name="name" type="text" class="form-control" value="{{ stock.name }}" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="quantity">Quantity</label>
+                <input id="quantity" name="quantity" type="number" min="0" class="form-control" value="{{ stock.quantity }}" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="price">Price</label>
+                <input id="price" name="price" type="number" min="0" step="0.01" class="form-control" value="{{ stock.price }}" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="service_type">Service Type</label>
+                <select id="service_type" name="service_type" class="form-select">
+                    <option value="">Select Type</option>
+                    <option value="Xerox" {% if stock.service_type == 'Xerox' %}selected{% endif %}>Xerox</option>
+                    <option value="Lamination" {% if stock.service_type == 'Lamination' %}selected{% endif %}>Lamination</option>
+                    <option value="Photos" {% if stock.service_type == 'Photos' %}selected{% endif %}>Photos</option>
+                    {% for stype in service_types %}
+                    {% if stype not in ['Xerox', 'Lamination', 'Photos'] %}
+                    <option value="{{ stype }}" {% if stock.service_type == stype %}selected{% endif %}>{{ stype }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="supplier">Supplier</label>
+                <input id="supplier" name="supplier" type="text" class="form-control" value="{{ stock.supplier }}" required>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary"><span class="bi bi-check2"></span>Save Changes</button>
+                <a href="{{ url_for('stock') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

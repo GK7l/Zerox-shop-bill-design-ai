@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h3 class="mb-1">Sales Reports</h3>
+        <p class="text-muted">Review invoices, total revenue, and profit/loss from all sales.</p>
+    </div>
+    <a href="/export" class="btn btn-success"><span class="bi bi-file-earmark-spreadsheet"></span>Export CSV</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card metric-card">
+            <div class="card-body">
+                <h5 class="card-title"><span class="bi bi-cash-stack me-2"></span>Total Sales</h5>
+                <p class="fs-4 mb-0">₹{{ total }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card metric-card accent">
+            <div class="card-body">
+                <h5 class="card-title"><span class="bi bi-graph-up-arrow me-2"></span>Total Profit/Loss</h5>
+                <p class="fs-4 mb-0">₹{{ total_profit }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive rounded shadow-sm bg-white">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Total</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in bills %}
+            <tr>
+                <td>{{ b.date }}</td>
+                <td>₹{{ b.total }}</td>
+                <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('edit_report', bill_id=b.id) }}" class="btn btn-sm btn-outline-primary"><span class="bi bi-pencil-square"></span>Edit</a>
+                        <form action="{{ url_for('delete_report', bill_id=b.id) }}" method="post" onsubmit="return confirm('Delete this report?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><span class="bi bi-trash3"></span>Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" class="text-center text-muted py-4">No reports found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

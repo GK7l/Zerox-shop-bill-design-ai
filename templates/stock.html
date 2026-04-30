@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h3 class="mb-1">Stock Management</h3>
+        <p class="text-muted">Add new stock items and keep inventory visible at a glance.</p>
+    </div>
+    <a href="/billing" class="btn btn-outline-primary"><span class="bi bi-receipt-cutoff"></span>Open Billing</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="POST" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label" for="name">Item Name</label>
+                <input id="name" name="name" type="text" class="form-control" placeholder="Enter item name" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="quantity">Quantity</label>
+                <input id="quantity" name="quantity" type="number" min="0" class="form-control" placeholder="0" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="price">Price</label>
+                <input id="price" name="price" type="number" min="0" step="0.01" class="form-control" placeholder="₹0.00" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="service_type">Service Type</label>
+                <select id="service_type" name="service_type" class="form-select">
+                    <option value="">Select Type</option>
+                    <option value="Xerox">Xerox</option>
+                    <option value="Lamination">Lamination</option>
+                    <option value="Photos">Photos</option>
+                    {% for stype in service_types %}
+                    {% if stype not in ['Xerox', 'Lamination', 'Photos'] %}
+                    <option value="{{ stype }}">{{ stype }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="supplier">Supplier</label>
+                <input id="supplier" name="supplier" type="text" class="form-control" placeholder="Supplier name" required>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><span class="bi bi-plus-lg"></span>Add</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive rounded shadow-sm bg-white">
+    <table class="table table-striped mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Cost Price</th>
+                <th>Stock Value</th>
+                <th>Supplier</th>
+                <th>Potential Margin</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in stocks %}
+            <tr class="{% if s.quantity < 5 %}table-danger{% endif %}">
+                <td>{{ s.name }}</td>
+                <td>{{ s.quantity }}</td>
+                <td>₹{{ s.price }}</td>
+                <td>₹{{ s.quantity * s.price }}</td>
+                <td>{{ s.supplier }}</td>
+                <td>
+                    {% set service = service_lookup.get(s.name) %}
+                    {% if service %}
+                        ₹{{ (service.price - s.price) | round(2) }} per item
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_stock', stock_id=s.id) }}" class="btn btn-sm btn-warning"><span class="bi bi-pencil-square"></span>Edit</a>
+                    <form action="{{ url_for('delete_stock', stock_id=s.id) }}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this stock item?')"><span class="bi bi-trash3"></span>Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

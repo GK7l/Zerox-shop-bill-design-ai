@@ -1,0 +1,32 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circular background -->
+  <circle cx="300" cy="280" r="140" fill="none" stroke="#D4A574" stroke-width="2" opacity="0.3"/>
+  
+  <!-- R Letter (Red) -->
+  <g fill="#C41E3A">
+    <path d="M 180 380 Q 180 240 240 240 Q 280 240 290 260 Q 300 240 340 240 Q 400 240 400 310 Q 400 360 360 380 L 400 420 L 350 420 L 310 380 L 260 380 L 260 420 L 210 420 L 210 240 L 260 240 L 260 380 M 240 260 L 240 360 Q 280 360 300 360 Q 350 360 350 310 Q 350 260 300 260 Z" transform="translate(-30, -60) scale(0.8)"/>
+  </g>
+  
+  <!-- C Letter (Cream) -->
+  <g fill="#F5E6D3" stroke="#C41E3A" stroke-width="2">
+    <path d="M 420 240 Q 480 240 490 310 Q 480 380 420 380 L 420 360 Q 460 360 470 310 Q 460 260 420 260 Z" transform="translate(80, -60) scale(0.8)"/>
+  </g>
+  
+  <!-- Circuit pattern around R -->
+  <g stroke="#C41E3A" stroke-width="2" fill="none" opacity="0.6">
+    <path d="M 200 200 L 220 180 M 220 180 L 240 200 M 240 200 L 240 220"/>
+    <path d="M 320 160 L 340 150 M 340 150 L 360 170"/>
+    <path d="M 180 280 L 160 290 M 160 290 L 150 310"/>
+    <path d="M 400 300 L 420 310 M 420 310 L 430 330"/>
+    <circle cx="220" cy="180" r="3" fill="#D4A574"/>
+    <circle cx="340" cy="150" r="3" fill="#D4A574"/>
+    <circle cx="160" cy="290" r="3" fill="#D4A574"/>
+    <circle cx="420" cy="310" r="3" fill="#D4A574"/>
+  </g>
+  
+  <!-- RUDRA Text -->
+  <text x="300" y="470" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#C41E3A" text-anchor="middle">RUDRA</text>
+  
+  <!-- COMPUTER Text -->
+  <text x="300" y="510" font-family="Arial, sans-serif" font-size="20" fill="#D4A574" text-anchor="middle" letter-spacing="2">COMPUTER</text>
+</svg>
