@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, send_file, url_for
 from models import db, User, Service, Stock, Bill, BillItem
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
 from urllib.parse import quote_plus
-import pandas as pd
+import csv
 import io
 import uuid
 
@@ -25,6 +23,50 @@ def automatic_material_for_service(service_name, fallback=None):
         if any(keyword in normalized_name for keyword in keywords):
             return material
     return fallback
+
+
+def escape_pdf_text(text):
+    return str(text).replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def build_simple_pdf(lines):
+    text_commands = ["BT", "/F1 18 Tf", "72 760 Td"]
+    first_line = True
+    for line in lines:
+        if first_line:
+            first_line = False
+        else:
+            text_commands.append("0 -24 Td")
+            text_commands.append("/F1 11 Tf")
+        text_commands.append(f"({escape_pdf_text(line)}) Tj")
+    text_commands.append("ET")
+
+    stream = "\n".join(text_commands).encode("latin-1", errors="replace")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"\nendstream",
+    ]
+
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for index, obj in enumerate(objects, start=1):
+        offsets.append(len(pdf))
+        pdf.extend(f"{index} 0 obj\n".encode("ascii"))
+        pdf.extend(obj)
+        pdf.extend(b"\nendobj\n")
+
+    xref_position = len(pdf)
+    pdf.extend(f"xref\n0 {len(objects) + 1}\n".encode("ascii"))
+    pdf.extend(b"0000000000 65535 f \n")
+    for offset in offsets:
+        pdf.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+    pdf.extend(
+        f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_position}\n%%EOF\n".encode("ascii")
+    )
+    return bytes(pdf)
 
 @app.context_processor
 def inject_cart_count():
@@ -473,24 +515,15 @@ def invoice_download(id):
 
     items = BillItem.query.filter_by(bill_id=id).all()
 
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer)
-    styles = getSampleStyleSheet()
-
-    content = []
-    content.append(Paragraph("Rudra Computers Invoice", styles['Title']))
-
+    lines = ["Rudra Computers Invoice"]
+    lines.append(f"Invoice #{bill.id}")
     for item in items:
-        content.append(Paragraph(
-            f"{item.service_name} x {item.quantity} = ₹{item.price * item.quantity}",
-            styles['Normal']
-        ))
+        lines.append(f"{item.service_name} x {item.quantity} = Rs.{item.price * item.quantity}")
+    lines.append(f"Total: Rs.{bill.total}")
 
-    content.append(Paragraph(f"Total: ₹{bill.total}", styles['Heading2']))
-    doc.build(content)
-    buffer.seek(0)
+    buffer = io.BytesIO(build_simple_pdf(lines))
 
-    return send_file(buffer, as_attachment=True, download_name="invoice.pdf")
+    return send_file(buffer, as_attachment=True, download_name="invoice.pdf", mimetype="application/pdf")
 
 # ---------------- STOCK ----------------
 @app.route('/stock', methods=['GET','POST'])
@@ -611,13 +644,16 @@ def delete_report(bill_id):
 def export():
     bills = Bill.query.all()
 
-    data = [{"date": b.date, "total": b.total} for b in bills]
-    df = pd.DataFrame(data)
+    text_buffer = io.StringIO()
+    writer = csv.writer(text_buffer)
+    writer.writerow(["date", "total"])
+    for bill in bills:
+        writer.writerow([bill.date, bill.total])
 
-    file = "report.csv"
-    df.to_csv(file, index=False)
+    buffer = io.BytesIO(text_buffer.getvalue().encode("utf-8"))
+    buffer.seek(0)
 
-    return send_file(file, as_attachment=True)
+    return send_file(buffer, as_attachment=True, download_name="report.csv", mimetype="text/csv")
 
 if __name__ == "__main__":
     app.run(debug=True)
